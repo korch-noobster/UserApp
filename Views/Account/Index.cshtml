@@ -1,0 +1,90 @@
+﻿<script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+
+<div id="container" style="height: 400px; min-width: 310px"></div>
+
+<script src="https://code.highcharts.com/stock/highstock.js"></script>
+<script src="https://code.highcharts.com/stock/modules/exporting.js"></script>
+<script src="https://code.highcharts.com/stock/modules/export-data.js"></script>
+
+<script>
+
+    var seriesOptions = [],
+        seriesCounter = 0,
+        names = ['RUB', 'RWF'];
+
+    function objToStrMap(obj) {      
+        let strMap = [];
+        obj.forEach((element) => {
+           
+            const arr = [];
+            arr.push(element.timestamp);
+            arr.push(element.value);
+            strMap.push(arr);
+          
+        });
+        return strMap;
+    }
+    $.each(names, function (i, name) {
+
+        $.getJSON('https://localhost:44350/api/GetDemoRate?from=' + name,  function (data) {
+
+            seriesOptions[i] = {
+                name: name,
+                data: objToStrMap(data)
+            };
+
+       
+            seriesCounter += 1;
+
+            if (seriesCounter === names.length) {
+                createChart();
+            }
+        });
+    });
+        
+    function createChart() {
+// create the chart
+        Highcharts.stockChart('container', {
+
+
+            title: {
+                text: 'Exchange rate'
+            },
+
+            xAxis: {
+                gapGridLineWidth: 0
+            },
+
+            plotOptions: {
+                series: {
+                    showInNavigator: true
+                }
+            },
+            tooltip: {
+                pointFormat: '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}',
+                valueDecimals: 8,
+                split: true
+            },
+
+            rangeSelector: {
+                buttons: [{
+                    type: 'hour',
+                    count: 1,
+                    text: '1h'
+                }, {
+                    type: 'day',
+                    count: 1,
+                    text: '1D'
+                }, {
+                    type: 'all',
+                    count: 1,
+                    text: 'All'
+                }],
+                selected: 1,
+                inputEnabled: false
+            },
+           
+            series: seriesOptions
+        });
+    };
+</script>
